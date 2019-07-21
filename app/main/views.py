@@ -1,13 +1,14 @@
-from flask import render_template, session, redirect, url_for
+from flask import render_template, session, redirect, url_for, jsonify
 from flask_wtf import Form
-from wtforms import StringField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import Required
 from . import main
 from .. import db
 from ..models import User, Role
 
 class UserForm(Form):
-	name = StringField('What is your name?', validators=[Required()])
+	username = StringField('Username:', validators=[Required()])
+	# password = PasswordField('Password:', validators=[Required()])
 	submit = SubmitField('Submit')
 
 @main.route('/', methods=['GET', 'POST'])
