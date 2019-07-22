@@ -1,3 +1,3 @@
 # flask-book
 
-Social bloggin platform developed while reading from the Flask Web Development book
+Social blogging platform developed whilst reading the Flask Web Development book.
