@@ -1,10 +1,11 @@
 from flask import render_template, session, redirect, url_for, jsonify
 from flask_wtf import Form
+from flask_login import login_required, current_user
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import Required
 from . import main
 from .. import db
-from ..models import User, Role
+from ..models import User, Role, Post
 
 class UserForm(Form):
 	username = StringField('Username:', validators=[Required()])
@@ -12,48 +13,46 @@ class UserForm(Form):
 	remember_me = BooleanField('Keep me logged in')
 	submit = SubmitField('Submit')
 
+class NewPostForm(Form):
+	title = StringField('Post title:', validators=[Required()])
+	body = StringField('Post body:', validators=[Required()])
+	submit = SubmitField('Submit post')
+
 @main.route('/', methods=['GET', 'POST'])
 def index():
-	form = UserForm()
+	posts = Post.query.order_by(Post.id.desc()).all()
+	posts_obj = []
+
+	for post in posts:
+		user = User.query.filter_by(id=post.user_id).first()
+		posts_obj.append({'post': post, 'user': user})
+
+	return render_template("index.html", posts=posts_obj)
+
+@main.route('/new_post', methods=['GET', 'POST'])
+@login_required
+def new_post():
+	form = NewPostForm()
 
 	if form.validate_on_submit():
-		existing_user = User.query.filter_by(username=form.username.data).first()
+		new_post = Post(title=form.title.data, body=form.body.data, user_id=current_user.id)
+		db.session.add(new_post)
+		db.session.commit()
 
-		# no user found with given username
-		if existing_user is None:
-			return render_template("index.html", form=form, error="User not found")
-			# user_role = Role.query.filter_by(name='user').first()
-			# new_user = User(username=form.name.data, role=user_role)
+		return redirect(url_for('main.index'))
 
-			# db.session.add(new_user)
-			# db.session.commit()
-			# session['known'] = False
-
-		else:
-			if existing_user.verify_password(form.password.data):
-				session['known'] = True
-				session['name'] = form.username.data
-				return redirect(url_for('.user'))
-
-			else:
-				session['known'] = False
-				return render_template("index.html", form=form, error="Password incorrect")
-
-	return render_template("index.html", form=form, name=session.get('name'))
-
-@main.route('/user')
-def user():
-	name = session.get('name')
-	known = session.get('known')
-
-	return render_template("user.html", username=name, known=known)
+	return render_template("new_post.html", form=form)
 
 @main.route('/user/<username>')
-def get_user(username):
-	existing_user = User.query.filter_by(username=username).first()
+def user(username):
+	user = User.query.filter_by(username=username).first()
 
-	if existing_user is None:
-		return render_template("user.html", username=None)
+	if user is None:
+		response = {
+			'error': 'User not found'
+		}
+		return jsonify(response)
 
-	else:
-		return render_template("user.html", username=existing_user.username)
+	posts = user.posts
+
+	return render_template("profile.html", user=user, posts=posts)

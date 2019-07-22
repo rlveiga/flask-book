@@ -14,5 +14,13 @@
 		{% endif %}
 		</h1>
 	</div>
+	<h4 style = "text-align: center;"><a href="{{ url_for('main.new_post') }}">New post</a></h4>
+	{% for post in posts %}
+	<div style="border: solid 1px #EEEEEE; border-radius: 5px; padding-left: 15px; margin-bottom: 20px;">
+		<h3>{{post.post.title}}</h3>
+		<p>{{post.post.body}}</p>
+		<p>Posted by <a href="{{ url_for('main.user', username=post.user.username) }}">{{post.user.username}}</a></p>
+	</div>
+	{% endfor %}
 </div>
 {% endblock %}

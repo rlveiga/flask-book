@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Flasky{% endblock %}
+
+{% block page_content %}
+<div class="container">
+	<div class = "page-header"">
+		<h1>{{user.username}}'s profile</h1>
+	</div>
+	<div>
+		{% if posts %}
+		<h3>Posts by {{user.username}}</h3>
+		{% for post in posts %}
+		<h3>{{post.title}}</h3>
+		<p>{{post.body}}</p>
+		{% endfor %}
+		{% else %}
+		<h3>{{user.username}} has no posts yet</h3>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}
